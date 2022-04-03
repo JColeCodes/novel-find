@@ -28,3 +28,7 @@ export const removeBookId = (bookId) => {
 
   return true;
 };
+
+export const clearSavedBooks = () => {
+  localStorage.setItem('saved_books', []);
+};
