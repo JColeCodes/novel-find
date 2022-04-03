@@ -33,7 +33,11 @@ const AppNavbar = () => {
                   <Nav.Link onClick={Auth.logout} onClickCapture={clearSavedBooks}>Logout</Nav.Link>
                 </>
               ) : (
-                <Nav.Link onClick={() => setShowModal(true)}>Login/Sign Up</Nav.Link>
+                <Nav.Link onClick={() => {
+                  setShowModal(true);
+                  // If user is idle too long, this stops an error in trying to log back in
+                  localStorage.removeItem('id_token');
+                }}>Login/Sign Up</Nav.Link>
               )}
             </Nav>
           </Navbar.Collapse>

@@ -8,6 +8,15 @@ import { SAVE_BOOK } from '../utils/mutations';
 import { searchGoogleBooks } from '../utils/API';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
 
+export const getDescription = (desc, num) => {
+  let trimmedDesc = desc.substring(0, num);
+  if (desc.substring(0, Math.min(desc.length, desc.lastIndexOf(' '))) !== trimmedDesc.substring(0, Math.min(trimmedDesc.length, trimmedDesc.lastIndexOf(' ')))) {
+    trimmedDesc = trimmedDesc.substring(0, Math.min(trimmedDesc.length, trimmedDesc.lastIndexOf(' ')))
+    return trimmedDesc + '... ';
+  }
+  return desc;
+};
+
 const SearchBooks = () => {
   // create state for holding returned google api data
   const [searchedBooks, setSearchedBooks] = useState([]);
@@ -136,15 +145,37 @@ const SearchBooks = () => {
           {searchedBooks.map((book) => {
             const bookImgUrl = book.image.split('zoom=1');
             let bookImg = bookImgUrl[0] + 'zoom=0' + bookImgUrl[1];
+            const cutLength = 450;
             return (
               <Card key={book.bookId} border='dark'>
                 {book.image ? (
-                  <Card.Img src={!bookImg.includes('edge=curl') ? book.image : bookImg} alt={`The cover for ${book.title}`} variant='top' />
+                  <Card.Img src={bookImg.includes('edge=curl') ? bookImg : book.image} alt={`The cover for ${book.title}`} variant='top' />
                 ) : null}
                 <Card.Body>
                   <Card.Title>{book.title}</Card.Title>
                   <p className='small'>Authors: {book.authors}</p>
-                  <Card.Text>{book.description}</Card.Text>
+                  {book.description && <Card.Text>
+                    <span>{getDescription(book.description, cutLength)}</span>
+                    <Button onClick={e => {
+                      const toggleButton = e.target;
+                      const descriptionText = e.target.parentElement.firstChild;
+                      const bookDescription = book.description + ' ';
+
+                      if (descriptionText.textContent === bookDescription) {
+                        descriptionText.textContent = getDescription(book.description, cutLength);
+                        toggleButton.textContent = '▼';
+                      } else {
+                        descriptionText.textContent = bookDescription;
+                        toggleButton.textContent = '▲';
+                      }
+                    }} className={`btn-toggle${getDescription(book.description, cutLength) === book.description ? ' hidden' : ''}`}
+                    variant='link'>▼</Button>
+                  </Card.Text>}
+                  <Button
+                    href={book.link}
+                    target='_blank'
+                    className='btn-block btn-secondary'>
+                  Google Books Link</Button>
                   {Auth.loggedIn() && (
                     <Button
                       disabled={savedBookIds?.some((savedBookId) => savedBookId === book.bookId)}
@@ -155,11 +186,6 @@ const SearchBooks = () => {
                         : 'Save this Book!'}
                     </Button>
                   )}
-                  <Button
-                    href={book.link}
-                    target='_blank'
-                    className='btn-block btn-secondary'>
-                  Google Books Link</Button>
                 </Card.Body>
               </Card>
             );
